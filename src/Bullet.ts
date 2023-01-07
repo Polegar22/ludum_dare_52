@@ -1,22 +1,37 @@
-import {
-	Group,
-	Vector3
-} from 'three'
+import * as THREE from 'three'
 
-export default class Bullet
+export default class Bullet extends THREE.Group
 {
-	public readonly group: Group
-	private readonly velocity = new Vector3()
+	private readonly velocity = new THREE.Vector3()
 
 	private isDead = false
+	private speed = 0.2
 
-	constructor(group: Group)
+	constructor(sentinelWorldDir: THREE.Vector3, sentinelPos: THREE.Vector3)
 	{
-		this.group = group
+		super()
+		const geometry = new THREE.SphereGeometry( 0.1);
+		const material = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
+		const sphere = new THREE.Mesh( geometry, material );
+        this.add(sphere)
+
+		this.positionBullet(sentinelWorldDir, sentinelPos)
 
 		setTimeout(() => {
 			this.isDead = true
 		}, 1000)
+	}
+	
+	positionBullet(sentinelWorldDir: THREE.Vector3, sentinelPos: THREE.Vector3) {
+		this.position.add(
+			sentinelPos.clone()
+		)
+
+		this.setVelocity(
+			sentinelWorldDir.x * this.speed,
+			sentinelWorldDir.y * this.speed,
+			sentinelWorldDir.z * this.speed
+		)
 	}
 
 	get shouldRemove()
@@ -31,8 +46,8 @@ export default class Bullet
 
 	update()
 	{
-		this.group.position.x += this.velocity.x
-		this.group.position.y += this.velocity.y
-		this.group.position.z += this.velocity.z
+		this.position.x += this.velocity.x
+		this.position.y += this.velocity.y
+		this.position.z += this.velocity.z
 	}
 }
