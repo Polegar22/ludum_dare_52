@@ -101,7 +101,6 @@ export default class Sentinel extends THREE.Group
 		)
 	
 		let intersections = this.raycaster.intersectObjects(this.levelMeshes, true).filter(intersection => intersection.distance < 0.2)
-		console.log(intersections)
 		if(intersections.length === 0){
 			this.position.copy(wantedPosition)
 		}

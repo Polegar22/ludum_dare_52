@@ -19,8 +19,8 @@ export default class HumanHarverstScene extends THREE.Scene
 	private pods:Pod[]=[]
 	private bullets: Bullet[] = []
 	private readonly loader=new GLTFLoader()
-	private level?: GLTF
-	private navMesh?:any
+	private level!: GLTF
+	private navMesh:any
 	private pathfinding:any
 
 
@@ -64,7 +64,6 @@ export default class HumanHarverstScene extends THREE.Scene
 			this.add(pod)
 			//this.humans.push(new Human(new Vector3(THREE.MathUtils.randInt(-10,10),0,THREE.MathUtils.randInt(-10,10)),this.pathfinding,this));
 			this.humans.push(new Human(pod,this.pathfinding,this));
-		
 		}
 
 		this.humans.forEach(h=>{
@@ -87,8 +86,8 @@ export default class HumanHarverstScene extends THREE.Scene
 		{
 			return
 		}
-		let sentinelWorldDir = this.sentinel.getWorldDirection(new THREE.Vector3()).negate()
-		let bullet = new Bullet(sentinelWorldDir, this.sentinel.position.clone())
+		let sentinelDirVect = this.sentinel.getWorldDirection(new THREE.Vector3()).negate()
+		let bullet = new Bullet(sentinelDirVect, this.sentinel.position.clone(), this.level.scenes)
 		this.bullets.push(bullet)
 		this.add(bullet)
 	}
@@ -100,16 +99,30 @@ export default class HumanHarverstScene extends THREE.Scene
 			h.update()
 
 		});
-		if(this.sentinel)
-		this.sentinel.updateInput()
+		if(this.sentinel){
+			this.sentinel.updateInput()
+		}
+		this.updateBullets()
+		
+	}
+	updateBullets()
+	{
 		this.bullets.forEach(bullet => {
-			if (bullet.shouldRemove){
+			bullet.update()
+			this.humans.forEach(human => {
+				if (human.position.distanceToSquared(bullet.position) < 0.5)
+				{
+					console.log("Touch")
+					this.remove(bullet)
+					bullet.shouldDisapear = true
+					human.returntoPod()
+				}
+			})
+			if (bullet.shouldDisapear){
 				this.remove(bullet)
 			}
-			else {
-				bullet.update()
-			}
 		})
-		this.bullets = this.bullets.filter(bullet => !bullet.shouldRemove)
+		this.bullets = this.bullets.filter(bullet => !bullet.shouldDisapear)
+
 	}
 }

@@ -4,50 +4,66 @@ export default class Bullet extends THREE.Group
 {
 	private readonly velocity = new THREE.Vector3()
 
-	private isDead = false
+	shouldDisapear = false
 	private speed = 0.2
+	private raycaster = new THREE.Raycaster()
+	private levelMeshes : Array<THREE.Group>
+	private directionVector = new THREE.Vector3
 
-	constructor(sentinelWorldDir: THREE.Vector3, sentinelPos: THREE.Vector3)
+
+	constructor(directionVector: THREE.Vector3, sentinelPos: THREE.Vector3, levelMeshes: Array<THREE.Group>)
 	{
 		super()
 		const geometry = new THREE.SphereGeometry( 0.1);
 		const material = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
 		const sphere = new THREE.Mesh( geometry, material );
         this.add(sphere)
-
-		this.positionBullet(sentinelWorldDir, sentinelPos)
+		this.levelMeshes = levelMeshes
+		this.directionVector = directionVector
+		this.positionBullet(sentinelPos)
 
 		setTimeout(() => {
-			this.isDead = true
+			this.shouldDisapear = true
 		}, 1000)
 	}
-	
-	positionBullet(sentinelWorldDir: THREE.Vector3, sentinelPos: THREE.Vector3) {
+
+	positionBullet(sentinelPos: THREE.Vector3) {
 		this.position.add(
 			sentinelPos.clone()
 		)
 
 		this.setVelocity(
-			sentinelWorldDir.x * this.speed,
-			sentinelWorldDir.y * this.speed,
-			sentinelWorldDir.z * this.speed
+			this.directionVector.x * this.speed,
+			this.directionVector.y * this.speed,
+			this.directionVector.z * this.speed
 		)
 	}
 
-	get shouldRemove()
-	{
-		return this.isDead
-	}
 
 	setVelocity(x: number, y: number, z: number)
 	{
 		this.velocity.set(x, y, z)
 	}
 
+
 	update()
 	{
-		this.position.x += this.velocity.x
-		this.position.y += this.velocity.y
-		this.position.z += this.velocity.z
+		let wantedPosition = this.position.clone()
+		wantedPosition.x += this.velocity.x
+		wantedPosition.y += this.velocity.y
+		wantedPosition.z += this.velocity.z
+
+		this.raycaster.set(
+			wantedPosition,
+			this.directionVector
+		)
+	
+		let intersections = this.raycaster.intersectObjects(this.levelMeshes, true).filter(intersection => intersection.distance < 0.2)
+		if(intersections.length === 0){
+			this.position.copy(wantedPosition)
+		}
+		else{
+			this.shouldDisapear = true
+		}
 	}
 }

@@ -42,12 +42,13 @@ export default class Human extends THREE.Group{
         let mesh=new THREE.Mesh(cube,mat)
         mesh.position.add(new THREE.Vector3(0,.5,0))
         super.add(mesh)
-        this.stayinpod=(Math.random()*5+5)
+
+        this.stayinpod=(Math.random()*10+5)
 
         this.pathfinding=pathfinding;
         this.pathhelper=new PathfindingHelper()
         this.scene=scene
-       // this.scene?.add(this.pathhelper)
+     this.scene?.add(this.pathhelper)
         
        // this.findNewTarget()
       //  this.vel=this.vel.randomDirection();
@@ -123,6 +124,8 @@ export default class Human extends THREE.Group{
         const target=this.pod.position
         target.y=0
 
+        
+
         this.navpath=this.pathfinding.findPath(closest.centroid,target,"level1",groupID)
         if(this.navpath && this.navpath.length>0){
             this.pathhelper.reset()
@@ -135,16 +138,20 @@ export default class Human extends THREE.Group{
 
 
     update() {
-        this.checkColl()
+
+        if(this.position.distanceToSquared(this.pod.position)<.5 && !this.isInPod && !this.navpath){
+            this.pod.isFull=true
+            this.isInPod=true
+            this.starttime=Date.now()
+            return;
+        }
 
         if(this.isInPod){
             const currenttime=Date.now()
             if((currenttime-this.starttime)/1000>this.stayinpod){
-                console.log("exit pod")
                 this.findNewTarget();
                 this.pod.isFull=false
                 this.isInPod=false
-                
             }
             return
         }
@@ -155,16 +162,19 @@ export default class Human extends THREE.Group{
             return;
         } 
 
-    let targetPosition = this.navpath[ 0 ];
-    const distance:THREE.Vector3 = targetPosition.clone().sub( this.position );
-    if (distance.lengthSq() > 0.5) {
-        distance.normalize();
+        let targetPosition = this.navpath[ 0 ];
+        const distance:THREE.Vector3 = targetPosition.clone().sub( this.position );
         
-        this.lookAt(targetPosition)   
-        this.position.add( distance.multiplyScalar(this.speed ) );
-    } else {
-        this.navpath.shift();
-    }
+        if (distance.lengthSq() > 0.5) {
+            distance.normalize();
+            
+            
+            this.position.add( distance.multiplyScalar(this.speed ) );
+        
+        } 
+        else {
+            this.navpath.shift();
+        }
 
              
 
