@@ -1,18 +1,24 @@
 import * as THREE from 'three'
+
+
 export default class Sentinel extends THREE.Group
 {
     private readonly camera: THREE.PerspectiveCamera
     private readonly keyDown = new Set<string>()
     private fireBulletHandler!: Function
+	private raycaster = new THREE.Raycaster()
+	private directionVector = new THREE.Vector3
+	private levelMeshes : Array<THREE.Group>
 
 
-    constructor(camera: THREE.PerspectiveCamera)
+    constructor(camera: THREE.PerspectiveCamera, levelMeshes: Array<THREE.Group>)
 	{
         super()
         this.camera = camera
+		this.levelMeshes = levelMeshes
         const geometry = new THREE.BoxGeometry( 0.1, 0.1, 0.3 );
         const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
-        const cube = new THREE.Mesh( geometry, material );
+        const cube = new THREE.Mesh(geometry, material);
         this.add(cube)
         this.add(camera)
 		document.addEventListener('keydown', this.handleKeyDown)
@@ -38,7 +44,6 @@ export default class Sentinel extends THREE.Group
 
     public updateInput()
 	{
-
 		const shiftKey = this.keyDown.has('shift')
 
 		if (!shiftKey)
@@ -53,38 +58,52 @@ export default class Sentinel extends THREE.Group
 			}
 		}
 
-		let directionVector = this.camera.getWorldDirection(new THREE.Vector3())
-
 		const speed = 0.1
+		this.directionVector = this.getWorldDirection(new THREE.Vector3()).negate()
+
+
+		let wantedPosition = this.position.clone()
 
 		if (this.keyDown.has('w') || this.keyDown.has('arrowup'))
 		{
-			this.position.add(directionVector.clone().multiplyScalar(speed))
+			wantedPosition.add(this.directionVector.clone().multiplyScalar(speed))
 		}
 		else if (this.keyDown.has('s') || this.keyDown.has('arrowdown'))
 		{
-			this.position.add(directionVector.clone().multiplyScalar(-speed))
+			wantedPosition.add(this.directionVector.clone().multiplyScalar(-speed))
 		}
 
 		if (shiftKey)
 		{
-			const strafeDir = directionVector.clone()
+			const strafeDir = this.directionVector.clone()
 			const upVector = new THREE.Vector3(0, 1, 0)
 
 			if (this.keyDown.has('a') || this.keyDown.has('arrowleft'))
 			{
-				this.position.add(
+				wantedPosition.add(
 					strafeDir.applyAxisAngle(upVector, Math.PI * 0.5)
 						.multiplyScalar(speed)
 				)
 			}
 			else if (this.keyDown.has('d') || this.keyDown.has('arrowright'))
 			{
-				this.position.add(
+				wantedPosition.add(
 					strafeDir.applyAxisAngle(upVector, Math.PI * -0.5)
 						.multiplyScalar(speed)
 				)
 			}
+		}
+
+		
+		this.raycaster.set(
+			wantedPosition,
+			this.directionVector
+		)
+	
+		let intersections = this.raycaster.intersectObjects(this.levelMeshes, true).filter(intersection => intersection.distance < 0.2)
+		console.log(intersections)
+		if(intersections.length === 0){
+			this.position.copy(wantedPosition)
 		}
 	}
 

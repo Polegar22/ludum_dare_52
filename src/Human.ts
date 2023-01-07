@@ -1,5 +1,7 @@
 import * as THREE from 'three'
 import {PathfindingHelper} from 'three-pathfinding'
+import Pod from './Pod'
+
 
 
 export default class Human extends THREE.Group{
@@ -15,9 +17,18 @@ export default class Human extends THREE.Group{
 
     pathhelper?:any
 
+    isInPod:boolean=true
+
+    pod:Pod
 
 
-    constructor(pos: THREE.Vector3,pathfinding:any,scene?:THREE.Scene){
+    starttime:number
+
+    stayinpod:number
+
+
+
+    constructor(pod: Pod,pathfinding:any,scene?:THREE.Scene){
         const cube=new THREE.BoxGeometry();
         
 
@@ -25,24 +36,23 @@ export default class Human extends THREE.Group{
             color:new THREE.Color(THREE.MathUtils.randInt(0, 0xffffff))
         });
         super();
-
-        this.position.add(pos)
+        this.pod=pod
+        this.starttime=Date.now()
+        this.position.add(pod.position)
         let mesh=new THREE.Mesh(cube,mat)
         mesh.position.add(new THREE.Vector3(0,.5,0))
         super.add(mesh)
+        this.stayinpod=(Math.random()*5+5)
 
         this.pathfinding=pathfinding;
         this.pathhelper=new PathfindingHelper()
         this.scene=scene
-        this.scene?.add(this.pathhelper)
+       // this.scene?.add(this.pathhelper)
         
-        this.findNewTarget()
-        this.vel=this.vel.randomDirection();
-        this.vel.y=0;
+       // this.findNewTarget()
+      //  this.vel=this.vel.randomDirection();
+      //  this.vel.y=0;
 
-
-        
-                
         
     }
 
@@ -106,9 +116,39 @@ export default class Human extends THREE.Group{
 
     }
 
+    returntoPod(){
+        let groupID = this.pathfinding.getGroup("level1", this.position);
+        // find closest node to agent, just in case agent is out of bounds
+        const closest = this.pathfinding.getClosestNode(this.position, "level1", groupID);
+        const target=this.pod.position
+        target.y=0
+
+        this.navpath=this.pathfinding.findPath(closest.centroid,target,"level1",groupID)
+        if(this.navpath && this.navpath.length>0){
+            this.pathhelper.reset()
+            this.pathhelper.setPlayerPosition(this.position);
+            this.pathhelper.setTargetPosition(target);
+            
+            this.pathhelper.setPath(this.navpath);
+        }
+    }
+
 
     update() {
         this.checkColl()
+
+        if(this.isInPod){
+            const currenttime=Date.now()
+            if((currenttime-this.starttime)/1000>this.stayinpod){
+                console.log("exit pod")
+                this.findNewTarget();
+                this.pod.isFull=false
+                this.isInPod=false
+                
+            }
+            return
+        }
+
 
         if ( !this.navpath || this.navpath.length <= 0 ){
             this.findNewTarget();
@@ -117,7 +157,6 @@ export default class Human extends THREE.Group{
 
     let targetPosition = this.navpath[ 0 ];
     const distance:THREE.Vector3 = targetPosition.clone().sub( this.position );
-    console.log("distance : "+distance.lengthSq())
     if (distance.lengthSq() > 0.5) {
         distance.normalize();
         
