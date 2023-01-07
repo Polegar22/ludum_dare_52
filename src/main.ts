@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import BlasterScene from './BlasterScene'
+import HumanHarverstScene from './HumanHarverstScene'
 
 const width = window.innerWidth
 const height = window.innerHeight
@@ -11,7 +11,7 @@ renderer.setSize(width, height)
 
 const mainCamera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100)
 
-const scene = new BlasterScene(mainCamera)
+const scene = new HumanHarverstScene(mainCamera)
 scene.initialize()
 
 function tick()
