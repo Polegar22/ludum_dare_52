@@ -6,6 +6,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 
 import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass';
+import {BloomPass, BloomPass} from 'three/examples/jsm/postprocessing/BloomPass'
 
 
 
@@ -40,9 +41,7 @@ function startGame(){
 	})
 	renderer.setSize(width, height)
 
-	renderer.shadowMap.enabled = true;
-	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
+	
 	const composer = new EffectComposer( renderer );
 
 	
@@ -57,7 +56,14 @@ function startGame(){
 
 	// const glitchPass = new GlitchPass();
 	// composer.addPass( glitchPass );
-	
+
+	const bloomPass = new BloomPass(
+		1,    // strength
+		25,   // kernel size
+		4,    // sigma ?
+		256,  // blur render target resolution
+	);	
+	//composer.addPass(bloomPass)
 	const urlParams = new URLSearchParams(window.location.search);
 	if(urlParams.get("orbit")){
 		const orbitControls = new OrbitControls(mainCamera, renderer.domElement);

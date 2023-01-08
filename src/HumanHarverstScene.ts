@@ -48,13 +48,13 @@ export default class HumanHarverstScene extends THREE.Scene
 		const lvlmat=new THREE.MeshPhysicalMaterial({
             color:new THREE.Color("#AAAAAA")
         });
-		this.level.scene.traverse(o=>{
-			if (o.isMesh){
-				 o.material = lvlmat;
-				 o.castShadow=true
-				 o.receiveShadow=true	
-			}	
-		})
+		// this.level.scene.traverse(o=>{
+		// 	if (o.isMesh){
+		// 		 o.material = lvlmat;
+		// 		 o.castShadow=true
+		// 		 o.receiveShadow=true	
+		// 	}	
+		// })
 
 		
 
@@ -80,7 +80,10 @@ export default class HumanHarverstScene extends THREE.Scene
 		this.add(this.sentinel)
 
 
-		let startpos=-10
+		
+		
+
+		
 		const fbxLoader =new FBXLoader()
 		fbxLoader.load('assets/suitMan.fbx', (object) => {
 			object.scale.multiplyScalar(0.007); 
@@ -92,14 +95,19 @@ export default class HumanHarverstScene extends THREE.Scene
 			animLoader.load('assets/walking.fbx', (anim) => {
 				this.initExitAndPods()
 				for (let i=0;i<this.pods.length;i++){
-					const pod=new Pod(new THREE.Vector3(startpos,0,-12))
-					startpos+=2
-					this.pods.push(pod)
-					this.add(pod)
 					const human = new Human(this.pods[i],this.exits[i],this.pathfinding, object, anim, this)
 					this.humans.push(human);
 					this.add(human)
 				}
+
+				this.pods.forEach(p => {
+					this.add(p)
+				});
+		
+				this.exits.forEach(e => {
+					this.add(e)
+				});
+
 				this.isStarted=true
 			})
 		})
@@ -115,13 +123,7 @@ export default class HumanHarverstScene extends THREE.Scene
 		const hemilight = new THREE.HemisphereLight( 0xffffbb, 0x080820, .6 );
 		this.add(hemilight );
 
-		this.pods.forEach(p => {
-			this.add(p)
-		});
-
-		this.exits.forEach(e => {
-			this.add(e)
-		});
+		
 	}
 
 	private createBullet()
