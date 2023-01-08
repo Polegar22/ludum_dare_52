@@ -146,7 +146,7 @@ export default class HumanHarverstScene extends THREE.Scene
 		console.log(levelBounds)
 		let lvlwidth=levelBounds.max.x-levelBounds.min.x
 		let lvlheight=levelBounds.max.z-levelBounds.min.z
-		const delta=3
+		let delta=5
 		const minx=levelBounds.min.x+delta
 		const maxx=levelBounds.max.x-delta
 		const minz=levelBounds.min.z+delta
@@ -159,7 +159,7 @@ export default class HumanHarverstScene extends THREE.Scene
 		this.pods.push(pod3)
 		let pod4=new Pod(new THREE.Vector3(maxx,0,minz))
 		this.pods.push(pod4)
-
+		delta=2
 		let exit1=new Exit(new THREE.Vector3(minx+lvlwidth/2-delta,0,maxz))
 		this.exits.push(exit1)
 		let exit2=new Exit(new THREE.Vector3(minx+lvlwidth/2-delta,0,minz))

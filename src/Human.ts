@@ -7,6 +7,7 @@ import Exit from './Exit'
 
 
 
+const LEVEL_ID = "level1"
 export default class Human extends THREE.Group{
 
     vel:THREE.Vector3=new THREE.Vector3();
@@ -61,13 +62,13 @@ export default class Human extends THREE.Group{
 
     findNewTarget(){
 
-        let groupID = this.pathfinding.getGroup("level1", this.position);
+        let groupID = this.pathfinding.getGroup(LEVEL_ID, this.position);
         // find closest node to agent, just in case agent is out of bounds
-        const closest = this.pathfinding.getClosestNode(this.position, "level1", groupID);
+        const closest = this.pathfinding.getClosestNode(this.position, LEVEL_ID, groupID);
         const target=this.exit.position
        // target.y=0
 
-        this.navpath=this.pathfinding.findPath(closest.centroid,target,"level1",groupID)
+        this.navpath=this.pathfinding.findPath(closest.centroid,target,LEVEL_ID,groupID)
         if(this.navpath && this.navpath.length>0){
             this.pathhelper.reset()
             this.pathhelper.setPlayerPosition(this.position);
@@ -118,15 +119,15 @@ export default class Human extends THREE.Group{
     }
 
     returntoPod(){
-        let groupID = this.pathfinding.getGroup("level1", this.position);
+        let groupID = this.pathfinding.getGroup(LEVEL_ID, this.position);
         // find closest node to agent, just in case agent is out of bounds
-        const closest = this.pathfinding.getClosestNode(this.position, "level1", groupID);
-        const target=this.pathfinding.getClosestNode(this.pod.position, "level1", groupID);
+        const closest = this.pathfinding.getClosestNode(this.position, LEVEL_ID, groupID);
+        const target=this.pod.position
         target.y=0
 
         
 
-        this.navpath=this.pathfinding.findPath(closest.centroid,target.centroid,"level1",groupID)
+        this.navpath=this.pathfinding.findPath(closest.centroid,target,LEVEL_ID,groupID)
         if(this.navpath && this.navpath.length>0){
             this.pathhelper.reset()
             this.pathhelper.setPlayerPosition(this.position);
@@ -139,14 +140,15 @@ export default class Human extends THREE.Group{
 
     update() {
 
-        if(this.position.distanceToSquared(this.pod.position)<.5 && !this.isInPod && !this.navpath){
-            this.pod.isFull=true
-            this.isInPod=true
-            this.starttime=Date.now()
-            return;
-        }
+        // if(this.position.distanceToSquared(this.pod.position)<.5 && !this.isInPod && !this.navpath){
+        //     this.pod.isFull=true
+        //     this.isInPod=true
+        //     this.starttime=Date.now()
+        //     return;
+        // }
 
         if(this.isInPod){
+            this.visible=false
             const currenttime=Date.now()
             if((currenttime-this.starttime)/1000>this.stayinpod){
                 this.findNewTarget();
@@ -158,9 +160,16 @@ export default class Human extends THREE.Group{
 
 
         if ( !this.navpath || this.navpath.length <= 0 ){
-            this.findNewTarget();
+            this.pod.isFull=true
+            if(this.position.distanceToSquared(this.pod.position)<.5){
+                this.isInPod=true
+
+            }
+            this.starttime=Date.now()
             return;
         } 
+
+        this.visible=true
 
         let targetPosition = this.navpath[ 0 ];
         const distance:THREE.Vector3 = targetPosition.clone().sub( this.position );
@@ -168,12 +177,17 @@ export default class Human extends THREE.Group{
         if (distance.lengthSq() > 0.5) {
             distance.normalize();
             this.lookAt(targetPosition)   
+
+            
             this.position.add( distance.multiplyScalar(this.speed ) );
         
         } 
         else {
             this.navpath.shift();
         }
+
+
+       
         if ( this.animationMixer )
             this.animationMixer.update(this.clock.getDelta() );
 
