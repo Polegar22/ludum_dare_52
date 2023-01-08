@@ -1,5 +1,7 @@
 import * as THREE from 'three'
 import {PathfindingHelper} from 'three-pathfinding'
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
+
 import Pod from './Pod'
 
 
@@ -26,35 +28,48 @@ export default class Human extends THREE.Group{
 
     stayinpod:number
 
-
-
     constructor(pod: Pod,pathfinding:any,scene?:THREE.Scene){
-        const cube=new THREE.BoxGeometry();
+        // const cube=new THREE.BoxGeometry();
         
 
-        const mat=new THREE.MeshPhysicalMaterial({
-            color:new THREE.Color(THREE.MathUtils.randInt(0, 0xffffff))
-        });
+        // const mat=new THREE.MeshPhysicalMaterial({
+        //     color:new THREE.Color(THREE.MathUtils.randInt(0, 0xffffff))
+        // });
+        // let mesh=new THREE.Mesh(cube,mat)
         super();
+        this.initModel()
         this.pod=pod
         this.starttime=Date.now()
         this.position.add(pod.position)
-        let mesh=new THREE.Mesh(cube,mat)
-        mesh.position.add(new THREE.Vector3(0,.5,0))
-        super.add(mesh)
 
         this.stayinpod=(Math.random()*10+5)
 
         this.pathfinding=pathfinding;
         this.pathhelper=new PathfindingHelper()
         this.scene=scene
-     this.scene?.add(this.pathhelper)
+        this.scene?.add(this.pathhelper)
         
        // this.findNewTarget()
       //  this.vel=this.vel.randomDirection();
       //  this.vel.y=0;
+    }
 
-        
+    async initModel(){
+        const fbxLoader = new FBXLoader()
+        const object = await fbxLoader.loadAsync('assets/suitMan.fbx');
+        object.scale.multiplyScalar(0.007); 
+        object.traverse((child) => {
+            child.castShadow=true
+            child.receiveShadow=true            
+        });
+
+        const anim = new FBXLoader()
+        const loadedAnim = await anim.loadAsync('/assets/walking.fbx')
+        const m = new THREE.AnimationMixer(object);
+        const walk = m.clipAction(loadedAnim.animations[0]);
+        walk.play();
+
+        super.add(object);
     }
 
 
@@ -167,7 +182,8 @@ export default class Human extends THREE.Group{
         
         if (distance.lengthSq() > 0.5) {
             distance.normalize();
-            
+            this.lookAt(targetPosition)   
+
             
             this.position.add( distance.multiplyScalar(this.speed ) );
         
