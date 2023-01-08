@@ -137,12 +137,12 @@ export default class Human extends THREE.Group{
         let groupID = this.pathfinding.getGroup("level1", this.position);
         // find closest node to agent, just in case agent is out of bounds
         const closest = this.pathfinding.getClosestNode(this.position, "level1", groupID);
-        const target=this.pod.position
+        const target=this.pathfinding.getClosestNode(this.pod.position, "level1", groupID);
         target.y=0
 
         
 
-        this.navpath=this.pathfinding.findPath(closest.centroid,target,"level1",groupID)
+        this.navpath=this.pathfinding.findPath(closest.centroid,target.centroid,"level1",groupID)
         if(this.navpath && this.navpath.length>0){
             this.pathhelper.reset()
             this.pathhelper.setPlayerPosition(this.position);

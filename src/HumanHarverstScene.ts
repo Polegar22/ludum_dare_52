@@ -82,9 +82,7 @@ export default class HumanHarverstScene extends THREE.Scene
 			this.humans.push(new Human(this.pods[i],this.exits[i],this.pathfinding,this));
 		}
 
-		// this.humans.forEach(h=>{
-		// 	h.setCollisionObjects(this.humans)
-		// })
+		
 
 		const light = new THREE.DirectionalLight(0xFFFFFF, 1)
 	//	light.castShadow=true
