@@ -90,14 +90,20 @@ export default class HumanHarverstScene extends THREE.Scene
 		const animLoader =new FBXLoader()
 		const idleAnim = await animLoader.loadAsync('assets/idle.fbx')
 		const walkingAnim = await animLoader.loadAsync('assets/walking.fbx')
+		const sadWalkAnim = await animLoader.loadAsync('assets/sadWalk.fbx')
 		let animClips = [
 			{
-				'actionType' : 'idle',
+				'type' : 'idle',
 				'clip':  idleAnim.animations[0]
-			},{
-				'actionType' : 'walking',
+			},
+			{
+				'type' : 'walk',
 				'clip':  walkingAnim.animations[0]
 			},
+			{
+				'type' : 'sadWalk',
+				'clip':  sadWalkAnim.animations[0]
+			}
 		]
 		this.initExitAndPods()
 
@@ -237,7 +243,7 @@ export default class HumanHarverstScene extends THREE.Scene
 		this.bullets.forEach(bullet => {
 			bullet.update()
 			this.humans.forEach(human => {
-				if (human.position.distanceToSquared(bullet.position) < 0.5)
+				if (human.position.distanceToSquared(bullet.position) < 0.7)
 				{
 					this.remove(bullet)
 					bullet.shouldDisapear = true

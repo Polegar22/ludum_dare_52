@@ -21,6 +21,8 @@ export default class Human extends THREE.Group{
     pathhelper?:any
 
     isInPod:boolean=true
+    isReturningToPod:boolean=false
+
 
     pod:Pod
     exit:Exit[]
@@ -32,12 +34,12 @@ export default class Human extends THREE.Group{
     animationMixer!: THREE.AnimationMixer
     clock = new THREE.Clock();
     
-    animationActions !: {actionType : string, action : THREE.AnimationAction}[]
+    animationActions !: {type : string, action : THREE.AnimationAction}[]
 
     nextexit!:Exit
 
 
-    constructor(pod: Pod, exit:Exit[],pathfinding:any, object:THREE.Group, animClips:{actionType : string, clip : THREE.AnimationClip}[], scene?:THREE.Scene){
+    constructor(pod: Pod, exit:Exit[],pathfinding:any, object:THREE.Group, animClips:{type : string, clip : THREE.AnimationClip}[], scene?:THREE.Scene){
         super();
         this.animationActions = []
         this.initModel(object, animClips)
@@ -57,17 +59,17 @@ export default class Human extends THREE.Group{
       //  this.vel.y=0;
     }
 
-    async initModel(object:THREE.Group, animClips:{actionType : string, clip : THREE.AnimationClip}[]){
+    async initModel(object:THREE.Group, animClips:{type : string, clip : THREE.AnimationClip}[]){
         this.animationMixer = new THREE.AnimationMixer( object );
         animClips.forEach(animClip => {
             const action = this.animationMixer.clipAction( animClip.clip )
             this.animationActions.push({
-                'actionType' : animClip.actionType,
+                'type' : animClip.type,
                 'action' : action
             })
-            if(animClip.actionType == "walking"){
-                action.play()
-            }
+            // if(animClip.type == "walking"){
+            //     action.play()
+            // }
         })
         super.add(object);
     }
@@ -132,6 +134,7 @@ export default class Human extends THREE.Group{
     }
 
     returntoPod(){
+        this.isReturningToPod = true
         let groupID = this.pathfinding.getGroup(LEVEL_ID, this.position);
         // find closest node to agent, just in case agent is out of bounds
         const closest = this.pathfinding.getClosestNode(this.position, LEVEL_ID, groupID);
@@ -159,9 +162,11 @@ export default class Human extends THREE.Group{
         //     this.starttime=Date.now()
         //     return;
         // }
+        this.updateAnimations()
 
         if(this.isInPod){
-            this.visible=false
+            this.isReturningToPod = false
+            // this.visible=false
             const currenttime=Date.now()
             if((currenttime-this.starttime)/1000>this.stayinpod){
                 this.findNewTarget();
@@ -198,16 +203,28 @@ export default class Human extends THREE.Group{
         else {
             this.navpath.shift();
         }
-
-
-       
-        if ( this.animationMixer )
-            this.animationMixer.update(this.clock.getDelta() );
-
-             
-
         //this.position.add(this.vel.clone().normalize().multiplyScalar(this.speed));
       
+    }
+    private updateAnimations(){
+        if ( this.animationMixer )
+            if(this.isInPod){
+                console.log("in pod")
+                this.animationActions.find(animation => animation.type == 'idle')?.action.play()
+                this.animationActions.filter(animation => animation.type != 'idle').map(animation => animation.action.stop())
+            }
+            else if(this.isReturningToPod){
+                console.log("sad walk")
+                this.animationActions.find(animation => animation.type == 'sadWalk')?.action.play()
+                this.animationActions.filter(animation => animation.type != 'sadWalk').map(animation => animation.action.stop())
+            }
+            else{
+                console.log("walk")
+                this.animationActions.find(animation => animation.type == 'walk')?.action.play()
+                this.animationActions.filter(animation => animation.type != 'walk').map(animation => animation.action.stop())
+            }
+            this.animationMixer.update(this.clock.getDelta() );
+
     }
 
 }
