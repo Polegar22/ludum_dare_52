@@ -3,24 +3,26 @@ import * as THREE from 'three'
 
 export default class Sentinel extends THREE.Group
 {
-    private readonly camera: THREE.PerspectiveCamera
     private readonly keyDown = new Set<string>()
     private fireBulletHandler!: Function
 	private raycaster = new THREE.Raycaster()
 	private directionVector = new THREE.Vector3
 	private levelMeshes : Array<THREE.Group>
+	private speed = 0.1
+
 
 
     constructor(camera: THREE.PerspectiveCamera, levelMeshes: Array<THREE.Group>)
 	{
         super()
-        this.camera = camera
 		this.levelMeshes = levelMeshes
         const geometry = new THREE.BoxGeometry( 0.1, 0.1, 0.3 );
         const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
         const cube = new THREE.Mesh(geometry, material);
+		this.position.y=0.7
         this.add(cube)
         this.add(camera)
+
 		document.addEventListener('keydown', this.handleKeyDown)
 		document.addEventListener('keyup', this.handleKeyUp)
 	}
@@ -58,19 +60,19 @@ export default class Sentinel extends THREE.Group
 			}
 		}
 
-		const speed = 0.1
 		this.directionVector = this.getWorldDirection(new THREE.Vector3()).negate()
-
+		let isGoingBack = false
 
 		let wantedPosition = this.position.clone()
 
 		if (this.keyDown.has('w') || this.keyDown.has('arrowup'))
 		{
-			wantedPosition.add(this.directionVector.clone().multiplyScalar(speed))
+			wantedPosition.add(this.directionVector.clone().multiplyScalar(this.speed))
 		}
 		else if (this.keyDown.has('s') || this.keyDown.has('arrowdown'))
 		{
-			wantedPosition.add(this.directionVector.clone().multiplyScalar(-speed))
+			isGoingBack = true
+			wantedPosition.add(this.directionVector.clone().multiplyScalar(-this.speed))
 		}
 
 		if (shiftKey)
@@ -82,27 +84,41 @@ export default class Sentinel extends THREE.Group
 			{
 				wantedPosition.add(
 					strafeDir.applyAxisAngle(upVector, Math.PI * 0.5)
-						.multiplyScalar(speed)
+						.multiplyScalar(this.speed)
 				)
 			}
 			else if (this.keyDown.has('d') || this.keyDown.has('arrowright'))
 			{
 				wantedPosition.add(
 					strafeDir.applyAxisAngle(upVector, Math.PI * -0.5)
-						.multiplyScalar(speed)
+						.multiplyScalar(this.speed)
 				)
 			}
 		}
 
-		
+		const wantedDirection = isGoingBack ? this.directionVector.clone().negate() : this.directionVector
+		this.manageCollision(wantedPosition, wantedDirection)
+	}
+
+	private manageCollision(wantedPosition: THREE.Vector3, wantedDirection: THREE.Vector3){
 		this.raycaster.set(
 			wantedPosition,
-			this.directionVector
+			wantedDirection
 		)
 	
 		let intersections = this.raycaster.intersectObjects(this.levelMeshes, true).filter(intersection => intersection.distance < 0.2)
 		if(intersections.length === 0){
 			this.position.copy(wantedPosition)
+		}
+		else if(intersections[0].face){
+			const normalVector = intersections[0].face?.normal
+			// const refVector = new THREE.Vector3(0, 0, 1)
+			// const refVectorNeg = new THREE.Vector3(1, 0, 0)
+			// let dot = this.directionVector.clone().normalize().dot(refVector)
+			// let negDot = this.directionVector.clone().normalize().dot(refVectorNeg)
+
+			// let tangent = normalVector.clone().cross(refVector).normalize();
+			this.position.add(normalVector.multiplyScalar(this.speed/10))	  
 		}
 	}
 

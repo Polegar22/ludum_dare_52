@@ -38,6 +38,9 @@ function startGame(){
 	})
 	renderer.setSize(width, height)
 
+	renderer.shadowMap.enabled = true;
+	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
 	const composer = new EffectComposer( renderer );
 
 	
@@ -50,8 +53,8 @@ function startGame(){
 	const renderPass = new RenderPass( scene, mainCamera );
 	composer.addPass( renderPass );
 
-	const glitchPass = new GlitchPass();
-	composer.addPass( glitchPass );
+	// const glitchPass = new GlitchPass();
+	// composer.addPass( glitchPass );
 	
 	const urlParams = new URLSearchParams(window.location.search);
 	if(urlParams.get("orbit")){

@@ -3,6 +3,8 @@ import Bullet from './Bullet'
 import Sentinel from './Sentinel'
 import Human from './Human'
 import Pod from './Pod'
+import Exit from './Exit'
+
 import {  Vector3 } from 'three'
 
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
@@ -17,6 +19,7 @@ export default class HumanHarverstScene extends THREE.Scene
 	private sentinel!: Sentinel
 	private humans:Human[]=[]
 	private pods:Pod[]=[]
+	private exits:Exit[]=[]
 	private bullets: Bullet[] = []
 	private readonly loader=new GLTFLoader()
 	private level!: GLTF
@@ -34,6 +37,19 @@ export default class HumanHarverstScene extends THREE.Scene
 	{
 		this.level=await this.loader.loadAsync('assets/level.glb')
 		this.add(this.level.scene)
+
+		const lvlmat=new THREE.MeshPhysicalMaterial({
+            color:new THREE.Color("#AAAAAA")
+        });
+		this.level.scene.traverse(o=>{
+			if (o.isMesh){
+				 o.material = lvlmat;
+				 o.castShadow=true
+				 o.receiveShadow=true	
+			}	
+		})
+
+		
 
 		this.pathfinding=new Pathfinding()
 
@@ -56,6 +72,10 @@ export default class HumanHarverstScene extends THREE.Scene
 		})
 		this.add(this.sentinel)
 
+
+		const levelBounds=new THREE.Box3().setFromObject(this.level.scene)
+		console.log(levelBounds)
+
 		let startpos=-10
 		for (let i=0;i<10;i++){
 			const pod=new Pod(new THREE.Vector3(startpos,0,-12))
@@ -71,9 +91,14 @@ export default class HumanHarverstScene extends THREE.Scene
 		})
 
 		const light = new THREE.DirectionalLight(0xFFFFFF, 1)
+	//	light.castShadow=true
 		light.position.set(0, 4, 2)
-
 		this.add(light)
+
+
+		const hemilight = new THREE.HemisphereLight( 0xffffbb, 0x080820, .6 );
+		this.add(hemilight );
+
 		
 		this.humans.forEach(h => {
 			this.add(h)
@@ -112,7 +137,6 @@ export default class HumanHarverstScene extends THREE.Scene
 			this.humans.forEach(human => {
 				if (human.position.distanceToSquared(bullet.position) < 0.5)
 				{
-					console.log("Touch")
 					this.remove(bullet)
 					bullet.shouldDisapear = true
 					human.returntoPod()
