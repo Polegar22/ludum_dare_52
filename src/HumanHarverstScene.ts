@@ -8,7 +8,10 @@ import Exit from './Exit'
 import {  Vector3 } from 'three'
 
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
+
 import {Pathfinding} from 'three-pathfinding'
+import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 
 
 
@@ -42,7 +45,6 @@ export default class HumanHarverstScene extends THREE.Scene
 	{
 		this.level=await this.loader.loadAsync('assets/level.glb')
 		this.add(this.level.scene)
-
 		const lvlmat=new THREE.MeshPhysicalMaterial({
             color:new THREE.Color("#AAAAAA")
         });
@@ -78,14 +80,29 @@ export default class HumanHarverstScene extends THREE.Scene
 		this.add(this.sentinel)
 
 
-		this.initExitAndPods()
-
-
-		for (let i=0;i<this.pods.length;i++){
-		//	let podnb=Math.round(Math.random()*(this.pods.length-1))
-		//	let exitnb=Math.round(Math.random()*(this.exits.length-1))
-			this.humans.push(new Human(this.pods[i],this.exits[i],this.pathfinding,this));
-		}
+		let startpos=-10
+		const fbxLoader =new FBXLoader()
+		fbxLoader.load('assets/suitMan.fbx', (object) => {
+			object.scale.multiplyScalar(0.007); 
+			object.traverse((child:any) => {
+				child.castShadow=true
+				child.receiveShadow=true            
+			});
+			const animLoader =new FBXLoader()
+			animLoader.load('assets/walking.fbx', (anim) => {
+				this.initExitAndPods()
+				for (let i=0;i<this.pods.length;i++){
+					const pod=new Pod(new THREE.Vector3(startpos,0,-12))
+					startpos+=2
+					this.pods.push(pod)
+					this.add(pod)
+					const human = new Human(this.pods[i],this.exits[i],this.pathfinding, object, anim, this)
+					this.humans.push(human);
+					this.add(human)
+				}
+				this.isStarted=true
+			})
+		})
 
 		
 
@@ -98,11 +115,6 @@ export default class HumanHarverstScene extends THREE.Scene
 		const hemilight = new THREE.HemisphereLight( 0xffffbb, 0x080820, .6 );
 		this.add(hemilight );
 
-		
-		this.humans.forEach(h => {
-			this.add(h)
-		});
-
 		this.pods.forEach(p => {
 			this.add(p)
 		});
@@ -110,7 +122,6 @@ export default class HumanHarverstScene extends THREE.Scene
 		this.exits.forEach(e => {
 			this.add(e)
 		});
-		this.isStarted=true
 	}
 
 	private createBullet()

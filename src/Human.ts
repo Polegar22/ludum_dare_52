@@ -28,17 +28,15 @@ export default class Human extends THREE.Group{
     starttime:number
 
     stayinpod:number
+    animationMixer?: THREE.AnimationMixer
+    clock = new THREE.Clock();
 
-    constructor(pod: Pod,exit:Exit,pathfinding:any,scene?:THREE.Scene){
-        // const cube=new THREE.BoxGeometry();
-        
 
-        // const mat=new THREE.MeshPhysicalMaterial({
-        //     color:new THREE.Color(THREE.MathUtils.randInt(0, 0xffffff))
-        // });
-        // let mesh=new THREE.Mesh(cube,mat)
+
+    constructor(pod: Pod, exit:Exit,pathfinding:any, object:THREE.Group, anim:any, scene?:THREE.Scene){
         super();
-        this.initModel()
+        this.initModel(object, anim)
+
         this.pod=pod
         this.exit=exit
         this.starttime=Date.now()
@@ -55,24 +53,11 @@ export default class Human extends THREE.Group{
       //  this.vel.y=0;
     }
 
-    async initModel(){
-        const fbxLoader = new FBXLoader()
-        const object = await fbxLoader.loadAsync('assets/suitMan.fbx');
-        object.scale.multiplyScalar(0.007); 
-        object.traverse((child) => {
-            child.castShadow=true
-            child.receiveShadow=true            
-        });
-
-        const anim = new FBXLoader()
-        const loadedAnim = await anim.loadAsync('/assets/walking.fbx')
-        const m = new THREE.AnimationMixer(object);
-        const walk = m.clipAction(loadedAnim.animations[0]);
-        walk.play();
-
+    async initModel(object:THREE.Group, anim:any){
+        this.animationMixer = new THREE.AnimationMixer( object );
+        this.animationMixer.clipAction( anim.animations[ 0 ] ).play(); 
         super.add(object);
     }
-
 
     findNewTarget(){
 
@@ -95,7 +80,6 @@ export default class Human extends THREE.Group{
 
     setCollisionObjects(obstacles:THREE.Group[]){
         this.obstacles=obstacles;
-        
     }
 
     private checkCollOld(){
@@ -184,14 +168,14 @@ export default class Human extends THREE.Group{
         if (distance.lengthSq() > 0.5) {
             distance.normalize();
             this.lookAt(targetPosition)   
-
-            
             this.position.add( distance.multiplyScalar(this.speed ) );
         
         } 
         else {
             this.navpath.shift();
         }
+        if ( this.animationMixer )
+            this.animationMixer.update(this.clock.getDelta() );
 
              
 
