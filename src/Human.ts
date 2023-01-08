@@ -23,7 +23,7 @@ export default class Human extends THREE.Group{
     isInPod:boolean=true
 
     pod:Pod
-    exit:Exit
+    exit:Exit[]
 
 
     starttime:number
@@ -32,9 +32,11 @@ export default class Human extends THREE.Group{
     animationMixer?: THREE.AnimationMixer
     clock = new THREE.Clock();
 
+    nextexit!:Exit
 
 
-    constructor(pod: Pod, exit:Exit,pathfinding:any, object:THREE.Group, anim:any, scene?:THREE.Scene){
+
+    constructor(pod: Pod, exit:Exit[],pathfinding:any, object:THREE.Group, anim:any, scene?:THREE.Scene){
         super();
         this.initModel(object, anim)
 
@@ -65,7 +67,8 @@ export default class Human extends THREE.Group{
         let groupID = this.pathfinding.getGroup(LEVEL_ID, this.position);
         // find closest node to agent, just in case agent is out of bounds
         const closest = this.pathfinding.getClosestNode(this.position, LEVEL_ID, groupID);
-        const target=this.exit.position
+        this.nextexit=this.exit[Math.round(Math.random()*(this.exit.length-1))]
+        const target=this.nextexit.position
        // target.y=0
 
         this.navpath=this.pathfinding.findPath(closest.centroid,target,LEVEL_ID,groupID)

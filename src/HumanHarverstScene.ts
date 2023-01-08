@@ -92,21 +92,22 @@ export default class HumanHarverstScene extends THREE.Scene
 				child.receiveShadow=true            
 			});
 			const animLoader =new FBXLoader()
+			this.initExitAndPods()
+			this.pods.forEach(p => {
+				this.add(p)
+			});
+	
+			this.exits.forEach(e => {
+				this.add(e)
+			});
 			animLoader.load('assets/walking.fbx', (anim) => {
-				this.initExitAndPods()
 				for (let i=0;i<this.pods.length;i++){
-					const human = new Human(this.pods[i],this.exits[i],this.pathfinding, SkeletonUtils.clone(object), anim, this)
+					const human = new Human(this.pods[i],this.exits,this.pathfinding, SkeletonUtils.clone(object), anim, this)
 					this.humans.push(human);
 					this.add(human)
 				}
 
-				this.pods.forEach(p => {
-					this.add(p)
-				});
-		
-				this.exits.forEach(e => {
-					this.add(e)
-				});
+				
 
 				this.isStarted=true
 			})
@@ -151,6 +152,9 @@ export default class HumanHarverstScene extends THREE.Scene
 		const maxx=levelBounds.max.x-delta
 		const minz=levelBounds.min.z+delta
 		const maxz=levelBounds.max.z-delta
+
+
+		
 		let pod1=new Pod(new THREE.Vector3(minx,0,maxz))
 		this.pods.push(pod1)
 		let pod2=new Pod(new THREE.Vector3(maxx,0,maxz))
@@ -159,14 +163,30 @@ export default class HumanHarverstScene extends THREE.Scene
 		this.pods.push(pod3)
 		let pod4=new Pod(new THREE.Vector3(maxx,0,minz))
 		this.pods.push(pod4)
-		delta=2
-		let exit1=new Exit(new THREE.Vector3(minx+lvlwidth/2-delta,0,maxz))
+		let pod5=new Pod(new THREE.Vector3(minx+delta,0,maxz))
+		this.pods.push(pod5)
+		let pod6=new Pod(new THREE.Vector3(maxx-delta,0,maxz))
+		this.pods.push(pod6)
+		let pod7=new Pod(new THREE.Vector3(minx,0,minz+delta))
+		this.pods.push(pod7)
+		let pod8=new Pod(new THREE.Vector3(maxx,0,minz+delta))
+		this.pods.push(pod8)
+		let pod9=new Pod(new THREE.Vector3(minx+delta,0,maxz-delta))
+		this.pods.push(pod9)
+		let pod10=new Pod(new THREE.Vector3(maxx-delta,0,maxz-delta))
+		this.pods.push(pod10)
+		let pod11=new Pod(new THREE.Vector3(minx+delta,0,minz+delta))
+		this.pods.push(pod11)
+		let pod12=new Pod(new THREE.Vector3(maxx-delta,0,minz+delta))
+		this.pods.push(pod12)
+		delta=1
+		let exit1=new Exit(new THREE.Vector3(levelBounds.min.x+lvlwidth/2-delta,0,levelBounds.max.z))
 		this.exits.push(exit1)
-		let exit2=new Exit(new THREE.Vector3(minx+lvlwidth/2-delta,0,minz))
+		let exit2=new Exit(new THREE.Vector3(levelBounds.min.x+lvlwidth/2-delta,0,levelBounds.min.x))
 		this.exits.push(exit2)
-		let exit3=new Exit(new THREE.Vector3(minx,maxz-lvlheight/2+delta))
+		let exit3=new Exit(new THREE.Vector3(levelBounds.min.x,levelBounds.max.z-lvlheight/2+delta))
 		this.exits.push(exit3)
-		let exit4=new Exit(new THREE.Vector3(maxx,0,maxz-lvlheight/2+delta))
+		let exit4=new Exit(new THREE.Vector3(levelBounds.max.z,0,levelBounds.max.z-lvlheight/2+delta))
 		this.exits.push(exit4)
 
 
@@ -177,11 +197,11 @@ export default class HumanHarverstScene extends THREE.Scene
 
 	private checkExits(){
 		this.humans.forEach(h => {
-			if(h.position.distanceToSquared(h.exit.position)<.5){
+			if(h.nextexit && h.position.distanceToSquared(h.nextexit.position)<.5){
 				this.remove(h)
 			}
 		});
-		this.humans=this.humans.filter(h=>h.position.distanceToSquared(h.exit.position)>.5)
+		this.humans=this.humans.filter(h=>!h.nextexit || h.position.distanceToSquared(h.nextexit.position)>.5)
 	}
 
 	private computeEnergy(){
