@@ -2,6 +2,11 @@ import * as THREE from 'three'
 import HumanHarverstScene from './HumanHarverstScene'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+
+import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass';
+
 
 
 const width = window.innerWidth
@@ -26,15 +31,27 @@ function handleKeyDown(event: KeyboardEvent){
 
 function startGame(){
 	document.removeEventListener('keydown', handleKeyDown)
+
+	
 	const renderer = new THREE.WebGLRenderer({
 		canvas: document.getElementById('app') as HTMLCanvasElement
 	})
 	renderer.setSize(width, height)
+
+	const composer = new EffectComposer( renderer );
+
+	
 	
 	const mainCamera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100)
 	
 	const scene = new HumanHarverstScene(mainCamera)
 	scene.initialize()
+
+	const renderPass = new RenderPass( scene, mainCamera );
+	composer.addPass( renderPass );
+
+	const glitchPass = new GlitchPass();
+	composer.addPass( glitchPass );
 	
 	const urlParams = new URLSearchParams(window.location.search);
 	if(urlParams.get("orbit")){
@@ -58,7 +75,7 @@ function startGame(){
 	{
 		if(!scene.isGameOver()){
 			scene.update()
-			renderer.render(scene, mainCamera)
+			composer.render()
 			requestAnimationFrame(tick)
 		}
 		else{
