@@ -73,22 +73,18 @@ export default class HumanHarverstScene extends THREE.Scene
 		this.add(this.sentinel)
 
 
-		const levelBounds=new THREE.Box3().setFromObject(this.level.scene)
-		console.log(levelBounds)
+		this.initExitAndPods()
 
-		let startpos=-10
-		for (let i=0;i<10;i++){
-			const pod=new Pod(new THREE.Vector3(startpos,0,-12))
-			startpos+=2
-			this.pods.push(pod)
-			this.add(pod)
-			//this.humans.push(new Human(new Vector3(THREE.MathUtils.randInt(-10,10),0,THREE.MathUtils.randInt(-10,10)),this.pathfinding,this));
-			this.humans.push(new Human(pod,this.pathfinding,this));
+
+		for (let i=0;i<this.pods.length;i++){
+		//	let podnb=Math.round(Math.random()*(this.pods.length-1))
+		//	let exitnb=Math.round(Math.random()*(this.exits.length-1))
+			this.humans.push(new Human(this.pods[i],this.exits[i],this.pathfinding,this));
 		}
 
-		this.humans.forEach(h=>{
-			h.setCollisionObjects(this.humans)
-		})
+		// this.humans.forEach(h=>{
+		// 	h.setCollisionObjects(this.humans)
+		// })
 
 		const light = new THREE.DirectionalLight(0xFFFFFF, 1)
 	//	light.castShadow=true
@@ -102,6 +98,14 @@ export default class HumanHarverstScene extends THREE.Scene
 		
 		this.humans.forEach(h => {
 			this.add(h)
+		});
+
+		this.pods.forEach(p => {
+			this.add(p)
+		});
+
+		this.exits.forEach(e => {
+			this.add(e)
 		});
 	}
 
@@ -117,6 +121,42 @@ export default class HumanHarverstScene extends THREE.Scene
 		this.add(bullet)
 	}
 
+	private initExitAndPods(){
+
+		//ma version originale
+
+		const levelBounds=new THREE.Box3().setFromObject(this.level.scene)
+		console.log(levelBounds)
+		let lvlwidth=levelBounds.max.x-levelBounds.min.x
+		let lvlheight=levelBounds.max.z-levelBounds.min.z
+		const delta=3
+		const minx=levelBounds.min.x+delta
+		const maxx=levelBounds.max.x-delta
+		const minz=levelBounds.min.z+delta
+		const maxz=levelBounds.max.z-delta
+		let pod1=new Pod(new THREE.Vector3(minx,0,maxz))
+		this.pods.push(pod1)
+		let pod2=new Pod(new THREE.Vector3(maxx,0,maxz))
+		this.pods.push(pod2)
+		let pod3=new Pod(new THREE.Vector3(minx,0,minz))
+		this.pods.push(pod3)
+		let pod4=new Pod(new THREE.Vector3(maxx,0,minz))
+		this.pods.push(pod4)
+
+		let exit1=new Exit(new THREE.Vector3(minx+lvlwidth/2-delta,0,maxz))
+		this.exits.push(exit1)
+		let exit2=new Exit(new THREE.Vector3(minx+lvlwidth/2-delta,0,minz))
+		this.exits.push(exit2)
+		let exit3=new Exit(new THREE.Vector3(minx,maxz-lvlheight/2+delta))
+		this.exits.push(exit3)
+		let exit4=new Exit(new THREE.Vector3(maxx,0,maxz-lvlheight/2+delta))
+		this.exits.push(exit4)
+
+
+		
+		
+
+	}
 
 	update()
 	{

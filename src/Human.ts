@@ -3,6 +3,7 @@ import {PathfindingHelper} from 'three-pathfinding'
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
 
 import Pod from './Pod'
+import Exit from './Exit'
 
 
 
@@ -15,20 +16,20 @@ export default class Human extends THREE.Group{
     pathfinding:any
 
     navpath:any
-    scene?:THREE.Scene
 
     pathhelper?:any
 
     isInPod:boolean=true
 
     pod:Pod
+    exit:Exit
 
 
     starttime:number
 
     stayinpod:number
 
-    constructor(pod: Pod,pathfinding:any,scene?:THREE.Scene){
+    constructor(pod: Pod,exit:Exit,pathfinding:any,scene?:THREE.Scene){
         // const cube=new THREE.BoxGeometry();
         
 
@@ -39,6 +40,7 @@ export default class Human extends THREE.Group{
         super();
         this.initModel()
         this.pod=pod
+        this.exit=exit
         this.starttime=Date.now()
         this.position.add(pod.position)
 
@@ -46,8 +48,7 @@ export default class Human extends THREE.Group{
 
         this.pathfinding=pathfinding;
         this.pathhelper=new PathfindingHelper()
-        this.scene=scene
-        this.scene?.add(this.pathhelper)
+        scene?.add(this.pathhelper)
         
        // this.findNewTarget()
       //  this.vel=this.vel.randomDirection();
@@ -78,8 +79,8 @@ export default class Human extends THREE.Group{
         let groupID = this.pathfinding.getGroup("level1", this.position);
         // find closest node to agent, just in case agent is out of bounds
         const closest = this.pathfinding.getClosestNode(this.position, "level1", groupID);
-        const target=new THREE.Vector3().random().subScalar(.5).multiplyScalar(40)
-        target.y=0
+        const target=this.exit.position
+       // target.y=0
 
         this.navpath=this.pathfinding.findPath(closest.centroid,target,"level1",groupID)
         if(this.navpath && this.navpath.length>0){
