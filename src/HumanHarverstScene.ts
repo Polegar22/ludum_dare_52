@@ -79,42 +79,42 @@ export default class HumanHarverstScene extends THREE.Scene
 		})
 		this.add(this.sentinel)
 
-
-		
-		
-
-		
 		const fbxLoader =new FBXLoader()
-		fbxLoader.load('assets/suitMan.fbx', (object) => {
-			object.scale.multiplyScalar(0.007); 
-			object.traverse((child:any) => {
-				child.castShadow=true
-				child.receiveShadow=true            
-			});
-			const animLoader =new FBXLoader()
-			this.initExitAndPods()
-			this.pods.forEach(p => {
-				this.add(p)
-			});
-	
-			this.exits.forEach(e => {
-				this.add(e)
-			});
-			animLoader.load('assets/walking.fbx', (anim) => {
-				for (let i=0;i<this.pods.length;i++){
-					const human = new Human(this.pods[i],this.exits,this.pathfinding, SkeletonUtils.clone(object), anim, this)
-					this.humans.push(human);
-					this.add(human)
-				}
 
-				
+		const object = await fbxLoader.loadAsync('assets/suitMan.fbx')
+		object.scale.multiplyScalar(0.007); 
+		object.traverse((child:any) => {
+			child.castShadow=true
+			child.receiveShadow=true            
+		});
+		const animLoader =new FBXLoader()
+		const idleAnim = await animLoader.loadAsync('assets/idle.fbx')
+		const walkingAnim = await animLoader.loadAsync('assets/walking.fbx')
+		let animClips = [
+			{
+				'actionType' : 'idle',
+				'clip':  idleAnim.animations[0]
+			},{
+				'actionType' : 'walking',
+				'clip':  walkingAnim.animations[0]
+			},
+		]
+		this.initExitAndPods()
 
-				this.isStarted=true
-			})
-		})
+		for (let i=0;i<this.pods.length;i++){
+			const human = new Human(this.pods[i],this.exits,this.pathfinding, SkeletonUtils.clone(object), animClips, this)
+			this.humans.push(human);
+			this.add(human)
+		}
 
-		
+		this.isStarted=true
+		this.pods.forEach(p => {
+			this.add(p)
+		});
 
+		this.exits.forEach(e => {
+			this.add(e)
+		});
 		const light = new THREE.DirectionalLight(0xFFFFFF, 1)
 	//	light.castShadow=true
 		light.position.set(0, 4, 2)

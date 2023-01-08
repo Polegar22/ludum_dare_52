@@ -29,17 +29,18 @@ export default class Human extends THREE.Group{
     starttime:number
 
     stayinpod:number
-    animationMixer?: THREE.AnimationMixer
+    animationMixer!: THREE.AnimationMixer
     clock = new THREE.Clock();
+    
+    animationActions !: {actionType : string, action : THREE.AnimationAction}[]
 
     nextexit!:Exit
 
 
-
-    constructor(pod: Pod, exit:Exit[],pathfinding:any, object:THREE.Group, anim:any, scene?:THREE.Scene){
+    constructor(pod: Pod, exit:Exit[],pathfinding:any, object:THREE.Group, animClips:{actionType : string, clip : THREE.AnimationClip}[], scene?:THREE.Scene){
         super();
-        this.initModel(object, anim)
-
+        this.animationActions = []
+        this.initModel(object, animClips)
         this.pod=pod
         this.exit=exit
         this.starttime=Date.now()
@@ -56,9 +57,18 @@ export default class Human extends THREE.Group{
       //  this.vel.y=0;
     }
 
-    async initModel(object:THREE.Group, anim:any){
+    async initModel(object:THREE.Group, animClips:{actionType : string, clip : THREE.AnimationClip}[]){
         this.animationMixer = new THREE.AnimationMixer( object );
-        this.animationMixer.clipAction( anim.animations[ 0 ] ).play(); 
+        animClips.forEach(animClip => {
+            const action = this.animationMixer.clipAction( animClip.clip )
+            this.animationActions.push({
+                'actionType' : animClip.actionType,
+                'action' : action
+            })
+            if(animClip.actionType == "walking"){
+                action.play()
+            }
+        })
         super.add(object);
     }
 
