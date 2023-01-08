@@ -95,7 +95,7 @@ export default class HumanHarverstScene extends THREE.Scene
 			animLoader.load('assets/walking.fbx', (anim) => {
 				this.initExitAndPods()
 				for (let i=0;i<this.pods.length;i++){
-					const human = new Human(this.pods[i],this.exits[i],this.pathfinding, object, anim, this)
+					const human = new Human(this.pods[i],this.exits[i],this.pathfinding, SkeletonUtils.clone(object), anim, this)
 					this.humans.push(human);
 					this.add(human)
 				}
