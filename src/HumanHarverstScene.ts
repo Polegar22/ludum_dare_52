@@ -125,4 +125,7 @@ export default class HumanHarverstScene extends THREE.Scene
 		this.bullets = this.bullets.filter(bullet => !bullet.shouldDisapear)
 
 	}
+	isGameOver(){
+		return false
+	}
 }
