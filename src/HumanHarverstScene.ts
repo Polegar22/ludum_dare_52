@@ -26,6 +26,11 @@ export default class HumanHarverstScene extends THREE.Scene
 	private navMesh:any
 	private pathfinding:any
 
+	private energy:number=300
+
+	private isStarted:boolean=false
+
+	gameUI = document.getElementById('gameUI')!
 
 	constructor(camera: THREE.PerspectiveCamera)
 	{
@@ -105,6 +110,7 @@ export default class HumanHarverstScene extends THREE.Scene
 		this.exits.forEach(e => {
 			this.add(e)
 		});
+		this.isStarted=true
 	}
 
 	private createBullet()
@@ -156,8 +162,29 @@ export default class HumanHarverstScene extends THREE.Scene
 
 	}
 
+	private checkExits(){
+		this.humans.forEach(h => {
+			if(h.position.distanceToSquared(h.exit.position)<.5){
+				this.remove(h)
+			}
+		});
+		this.humans=this.humans.filter(h=>h.position.distanceToSquared(h.exit.position)>.5)
+	}
+
+	private computeEnergy(){
+		let nbinpod=this.humans.filter(h=>h.isInPod).length
+		let nbout=this.humans.length-nbinpod
+		this.energy+=.2*nbinpod-.1*nbout
+		this.gameUI.innerText="Energy : "+this.energy
+
+	}
+
 	update()
 	{
+		
+		this.computeEnergy()
+		
+		
 		this.humans.forEach(h => {
 			h.update()
 
@@ -166,6 +193,10 @@ export default class HumanHarverstScene extends THREE.Scene
 			this.sentinel.updateInput()
 		}
 		this.updateBullets()
+		this.checkExits()
+
+		this.gameUI.innerText="Energy : "+this.energy
+
 		
 	}
 	updateBullets()
@@ -188,6 +219,6 @@ export default class HumanHarverstScene extends THREE.Scene
 
 	}
 	isGameOver(){
-		return false
+		return this.isStarted && (this.energy<0 || this.humans.length==0)
 	}
 }

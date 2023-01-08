@@ -15,6 +15,8 @@ const height = window.innerHeight
 let mainScreen = document.getElementById('mainScreen')!
 let app = document.getElementById('app')!
 let endScreen = document.getElementById('endScreen')!
+let gameUI = document.getElementById('gameUI')!
+
 initGameScreens()
 
 
@@ -31,7 +33,7 @@ function handleKeyDown(event: KeyboardEvent){
 
 function startGame(){
 	document.removeEventListener('keydown', handleKeyDown)
-
+	gameUI.style.display="block"
 	
 	const renderer = new THREE.WebGLRenderer({
 		canvas: document.getElementById('app') as HTMLCanvasElement
@@ -92,6 +94,7 @@ function startGame(){
 function gameOver(){
 	mainScreen.style.display = "none";
 	app.style.display="none"
+	gameUI.style.display="none"
 	endScreen.style.display="flex"
 	initGameScreens()
 }

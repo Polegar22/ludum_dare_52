@@ -32,13 +32,22 @@
 			height: 100vh;
 			display: none;
 		}
+		#gameUI{
+			position:absolute;
+			top:10px;
+			left:10px;
+			background-color: white;
+			display: none;
+		}
 	</style>
   </head>
   <body>
+	
 	<div id="mainScreen" class="uiScreen">
 		<h1>Human Harvest</h1>
 		<h2>Press any key to play</h2>
 	</div>
+	<div id="gameUI"></div>
     <canvas id="app"></canvas>
 	<div id="endScreen" class="uiScreen">
 		<h1>Game Over</h1>
