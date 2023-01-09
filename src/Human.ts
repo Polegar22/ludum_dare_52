@@ -178,12 +178,15 @@ export default class Human extends THREE.Group{
 
 
         if ( !this.navpath || this.navpath.length <= 0 ){
-            this.pod.isFull=true
             if(this.position.distanceToSquared(this.pod.position)<.5){
                 this.isInPod=true
+                this.pod.isFull=true
+
+                this.starttime=Date.now()
 
             }
-            this.starttime=Date.now()
+            this.returntoPod();
+
             return;
         } 
 
