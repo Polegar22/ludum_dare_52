@@ -58,7 +58,7 @@ function startGame(){
 	 const glitchPass = new GlitchPass();
 	// composer.addPass( glitchPass );
 
-	const bloomPass = new UnrealBloomPass(new Vector2(width,height),1.6,.1,.8)
+	const bloomPass = new UnrealBloomPass(new Vector2(width,height),0.1,.1,.8)
 
 	// 	1,    // strength
 	// 	25,   // kernel size

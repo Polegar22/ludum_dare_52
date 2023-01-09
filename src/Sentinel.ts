@@ -1,5 +1,7 @@
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
+import { DecalGeometry } from 'three/examples/jsm/geometries/DecalGeometry';
+
 
 //"Neo Smartphone" (https://skfb.ly/6VpvX) by Beinaja is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
 export default class Sentinel extends THREE.Group
@@ -10,13 +12,16 @@ export default class Sentinel extends THREE.Group
 	private directionVector = new THREE.Vector3
 	private levelMeshes : Array<THREE.Group>
 	private speed = 0.1
-
+    private screenMesh !: THREE.Mesh
+    private materials !: {appName : string, material : THREE.MeshBasicMaterial}[]
+    private clock = new THREE.Clock();
 
 
     constructor(camera: THREE.PerspectiveCamera, levelMeshes: Array<THREE.Group>)
 	{
         super()
 		this.levelMeshes = levelMeshes
+        this.initMaterials()
 		this.initModel()
 		this.position.y=0.7
         this.add(camera)
@@ -25,15 +30,34 @@ export default class Sentinel extends THREE.Group
 		document.addEventListener('keyup', this.handleKeyUp)
 	}
 
+    private initMaterials(){
+        this.materials = []
+        for (const appName of ['facebook', 'twitter', 'instagram', 'snapchat', 'tiktok']) {
+            const texture = new THREE.TextureLoader().load( `assets/${appName}.png` );
+            const material = new THREE.MeshBasicMaterial( { map: texture } );
+            this.materials.push(
+                {
+                    'appName': appName,
+                    'material': material
+                }
+            )
+        }
+    }
+
 	private async initModel(){
 		const loadedModel=await new GLTFLoader().loadAsync('assets/smartphone.glb')
 		const object= loadedModel.scene
 		object.scale.multiplyScalar(0.3)
+
+		this.screenMesh = object.getObjectByName('Object_8') as THREE.Mesh
+        this.screenMesh.material = this.materials[0].material
+        
 		object.traverse((child:any) => {
 			child.castShadow=true
 			child.receiveShadow=true            
 		});
 		this.add(object)
+		// this.add(m)
 	}
 
     
@@ -107,6 +131,7 @@ export default class Sentinel extends THREE.Group
 
 		const wantedDirection = isGoingBack ? this.directionVector.clone().negate() : this.directionVector
 		this.manageCollision(wantedPosition, wantedDirection)
+		this.changeScreenApp(this.clock.getElapsedTime())
 	}
 
 	private manageCollision(wantedPosition: THREE.Vector3, wantedDirection: THREE.Vector3){
@@ -128,6 +153,13 @@ export default class Sentinel extends THREE.Group
 
 			// let tangent = normalVector.clone().cross(refVector).normalize();
 			this.position.add(normalVector.multiplyScalar(this.speed/10))	  
+		}
+	}
+
+	private changeScreenApp(elapsedSeconds:number){
+		if(this.materials && this.screenMesh && Math.floor(elapsedSeconds) % 5 == 0){
+			const index =  Math.floor(Math.random() * this.materials.length);
+			this.screenMesh.material = this.materials[index].material
 		}
 	}
 

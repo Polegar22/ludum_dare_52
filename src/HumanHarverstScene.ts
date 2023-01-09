@@ -210,8 +210,7 @@ export default class HumanHarverstScene extends THREE.Scene
 		let nbinpod=this.humans.filter(h=>h.isInPod).length
 		let nbout=this.humans.length-nbinpod
 		this.energy+=.2*nbinpod-.1*nbout
-		this.gameUI.innerText="Energy : "+this.energy
-
+		this.gameUI.innerText="Energy : "+ Math.floor(this.energy)
 	}
 
 	update()
@@ -229,9 +228,6 @@ export default class HumanHarverstScene extends THREE.Scene
 		}
 		this.updateBullets()
 		this.checkExits()
-
-		this.gameUI.innerText="Energy : "+this.energy
-
 		
 	}
 	updateBullets()

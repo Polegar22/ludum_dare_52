@@ -10,18 +10,12 @@ export default class Bullet extends THREE.Group
 	private levelMeshes : Array<THREE.Group>
 	private directionVector = new THREE.Vector3
 
-	private availableColors = [
-		0x00aced,
-		0x3b579d,
-		0xea4953
-	]
-
 
 	constructor(directionVector: THREE.Vector3, sentinelPos: THREE.Vector3, levelMeshes: Array<THREE.Group>)
 	{
 		super()
 		const geometry = new THREE.SphereGeometry( 0.03);
-		const material = new THREE.MeshBasicMaterial( { color: this.getRandomColor()} );
+		const material = new THREE.MeshBasicMaterial( { color: 0xF84F31} );
 		const sphere = new THREE.Mesh( geometry, material );
         this.add(sphere)
 		this.levelMeshes = levelMeshes
@@ -31,11 +25,6 @@ export default class Bullet extends THREE.Group
 		setTimeout(() => {
 			this.shouldDisapear = true
 		}, 1000)
-	}
-
-	private getRandomColor(): number {
-		const index =  Math.floor(Math.random() * this.availableColors.length);
-		return this.availableColors[index]
 	}
 
 	positionBullet(sentinelPos: THREE.Vector3) {
