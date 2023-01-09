@@ -1,6 +1,7 @@
 import * as THREE from 'three'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
-
+//"Neo Smartphone" (https://skfb.ly/6VpvX) by Beinaja is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
 export default class Sentinel extends THREE.Group
 {
     private readonly keyDown = new Set<string>()
@@ -16,15 +17,23 @@ export default class Sentinel extends THREE.Group
 	{
         super()
 		this.levelMeshes = levelMeshes
-        const geometry = new THREE.BoxGeometry( 0.1, 0.1, 0.3 );
-        const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
-        const cube = new THREE.Mesh(geometry, material);
+		this.initModel()
 		this.position.y=0.7
-        this.add(cube)
         this.add(camera)
 
 		document.addEventListener('keydown', this.handleKeyDown)
 		document.addEventListener('keyup', this.handleKeyUp)
+	}
+
+	private async initModel(){
+		const loadedModel=await new GLTFLoader().loadAsync('assets/smartphone.glb')
+		const object= loadedModel.scene
+		object.scale.multiplyScalar(0.3)
+		object.traverse((child:any) => {
+			child.castShadow=true
+			child.receiveShadow=true            
+		});
+		this.add(object)
 	}
 
     
@@ -106,7 +115,7 @@ export default class Sentinel extends THREE.Group
 			wantedDirection
 		)
 	
-		let intersections = this.raycaster.intersectObjects(this.levelMeshes, true).filter(intersection => intersection.distance < 0.2)
+		let intersections = this.raycaster.intersectObjects(this.levelMeshes, true).filter(intersection => intersection.distance < 0.4)
 		if(intersections.length === 0){
 			this.position.copy(wantedPosition)
 		}

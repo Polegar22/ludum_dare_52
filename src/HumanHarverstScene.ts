@@ -195,10 +195,6 @@ export default class HumanHarverstScene extends THREE.Scene
 		let exit4=new Exit(new THREE.Vector3(levelBounds.max.z,0,levelBounds.max.z-lvlheight/2+delta))
 		this.exits.push(exit4)
 
-
-		
-		
-
 	}
 
 	private checkExits(){

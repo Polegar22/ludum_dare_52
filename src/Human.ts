@@ -166,7 +166,7 @@ export default class Human extends THREE.Group{
 
         if(this.isInPod){
             this.isReturningToPod = false
-            // this.visible=false
+            this.visible=false
             const currenttime=Date.now()
             if((currenttime-this.starttime)/1000>this.stayinpod){
                 this.findNewTarget();
@@ -209,17 +209,14 @@ export default class Human extends THREE.Group{
     private updateAnimations(){
         if ( this.animationMixer )
             if(this.isInPod){
-                console.log("in pod")
                 this.animationActions.find(animation => animation.type == 'idle')?.action.play()
                 this.animationActions.filter(animation => animation.type != 'idle').map(animation => animation.action.stop())
             }
             else if(this.isReturningToPod){
-                console.log("sad walk")
                 this.animationActions.find(animation => animation.type == 'sadWalk')?.action.play()
                 this.animationActions.filter(animation => animation.type != 'sadWalk').map(animation => animation.action.stop())
             }
             else{
-                console.log("walk")
                 this.animationActions.find(animation => animation.type == 'walk')?.action.play()
                 this.animationActions.filter(animation => animation.type != 'walk').map(animation => animation.action.stop())
             }
