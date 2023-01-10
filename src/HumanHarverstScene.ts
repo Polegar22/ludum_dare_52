@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import Bullet from './Bullet'
+import {BulletType} from './Bullet'
 import Sentinel from './Sentinel'
 import Human from './Human'
 import Pod from './Pod'
@@ -74,8 +75,8 @@ export default class HumanHarverstScene extends THREE.Scene
 		this.camera.position.z = 1
 		this.camera.position.y = 0.5
 		this.sentinel = new Sentinel(this.camera, this.level.scenes)
-		this.sentinel.setFireBulletHandler(() => {
-			this.createBullet()
+		this.sentinel.setFireBulletHandler((bulletType:BulletType) => {
+			this.createBullet(bulletType)
 		})
 		this.add(this.sentinel)
 
@@ -133,14 +134,14 @@ export default class HumanHarverstScene extends THREE.Scene
 		
 	}
 
-	private createBullet()
+	private createBullet(bulletType : BulletType)
 	{
 		if (!this.sentinel)
 		{
 			return
 		}
 		let sentinelDirVect = this.sentinel.getWorldDirection(new THREE.Vector3()).negate()
-		let bullet = new Bullet(sentinelDirVect, this.sentinel.position.clone(), this.level.scenes)
+		let bullet = new Bullet(sentinelDirVect, this.sentinel.position.clone(), this.level.scenes, bulletType)
 		this.bullets.push(bullet)
 		this.add(bullet)
 	}

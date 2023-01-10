@@ -1,8 +1,10 @@
 import * as THREE from 'three'
+import {BulletType} from './Bullet'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { DecalGeometry } from 'three/examples/jsm/geometries/DecalGeometry';
 
-
+const DEFAULT_SPEED = 0.1
+const DEFAULT_FIRE_RATE = 400
 //"Neo Smartphone" (https://skfb.ly/6VpvX) by Beinaja is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
 export default class Sentinel extends THREE.Group
 {
@@ -13,15 +15,19 @@ export default class Sentinel extends THREE.Group
 	private levelMeshes : Array<THREE.Group>
 	private speed = 0.1
     private screenMesh !: THREE.Mesh
-    private materials !: {appName : string, material : THREE.MeshBasicMaterial}[]
+    private weaponTypes !: {appName : string, material : THREE.MeshBasicMaterial}[]
     private clock = new THREE.Clock();
+	private currentWeapon !: string
+	private bulletType = BulletType.Normal
+	private lastFire = Date.now()
+	private fireRate = DEFAULT_FIRE_RATE 
 
 
     constructor(camera: THREE.PerspectiveCamera, levelMeshes: Array<THREE.Group>)
 	{
         super()
 		this.levelMeshes = levelMeshes
-        this.initMaterials()
+        this.initWeaponTypes()
 		this.initModel()
 		this.position.y=0.7
         this.add(camera)
@@ -30,12 +36,12 @@ export default class Sentinel extends THREE.Group
 		document.addEventListener('keyup', this.handleKeyUp)
 	}
 
-    private initMaterials(){
-        this.materials = []
+    private initWeaponTypes(){
+        this.weaponTypes = []
         for (const appName of ['facebook', 'twitter', 'instagram', 'snapchat', 'tiktok']) {
             const texture = new THREE.TextureLoader().load( `assets/${appName}.png` );
             const material = new THREE.MeshBasicMaterial( { map: texture } );
-            this.materials.push(
+            this.weaponTypes.push(
                 {
                     'appName': appName,
                     'material': material
@@ -50,14 +56,12 @@ export default class Sentinel extends THREE.Group
 		object.scale.multiplyScalar(0.3)
 
 		this.screenMesh = object.getObjectByName('Object_8') as THREE.Mesh
-        this.screenMesh.material = this.materials[0].material
         
 		object.traverse((child:any) => {
 			child.castShadow=true
 			child.receiveShadow=true            
 		});
 		this.add(object)
-		// this.add(m)
 	}
 
     
@@ -65,7 +69,15 @@ export default class Sentinel extends THREE.Group
 		this.keyDown.add(event.key.toLowerCase())
         if (event.key === ' ')
 		{
-            this.fireBulletHandler()
+			this.fireBullet()
+		}
+	}
+
+	private fireBullet(){
+		const now = Date.now()
+		if(now - this.lastFire> this.fireRate){
+			this.fireBulletHandler(this.bulletType)
+			this.lastFire = Date.now()
 		}
 	}
 
@@ -131,7 +143,7 @@ export default class Sentinel extends THREE.Group
 
 		const wantedDirection = isGoingBack ? this.directionVector.clone().negate() : this.directionVector
 		this.manageCollision(wantedPosition, wantedDirection)
-		this.changeScreenApp(this.clock.getElapsedTime())
+		this.changeWeaponType(this.clock.getElapsedTime())
 	}
 
 	private manageCollision(wantedPosition: THREE.Vector3, wantedDirection: THREE.Vector3){
@@ -156,10 +168,39 @@ export default class Sentinel extends THREE.Group
 		}
 	}
 
-	private changeScreenApp(elapsedSeconds:number){
-		if(this.materials && this.screenMesh && Math.floor(elapsedSeconds) % 5 == 0){
-			const index =  Math.floor(Math.random() * this.materials.length);
-			this.screenMesh.material = this.materials[index].material
+	private changeWeaponType(elapsedSeconds:number){
+		if(this.weaponTypes && this.screenMesh && Math.floor(elapsedSeconds) % 5 == 0){
+			const index =  Math.floor(Math.random() * this.weaponTypes.length);
+			this.screenMesh.material = this.weaponTypes[index].material
+			this.currentWeapon = this.weaponTypes[index].appName
+		}
+		else{
+			this.manageWeaponBonus()
+		}
+	}
+
+	private manageWeaponBonus(){
+
+		if(this.currentWeapon =="facebook"){
+			this.speed = DEFAULT_SPEED
+			this.bulletType = BulletType.Normal
+			this.fireRate = DEFAULT_FIRE_RATE
+		}
+		else if(this.currentWeapon === "snapchat"){
+			this.speed = DEFAULT_SPEED * 2
+		}
+		else if(this.currentWeapon === 'tiktok'){
+			this.fireRate = 200
+			this.fireBullet()
+		}
+		else if(this.currentWeapon == "twitter"){
+			this.bulletType = BulletType.Speed
+		}
+		else if(this.currentWeapon == "instagram"){
+			this.speed = DEFAULT_SPEED * 2
+			this.fireRate = 200
+			this.fireBullet()
+			this.bulletType = BulletType.Speed
 		}
 	}
 
