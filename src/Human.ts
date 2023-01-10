@@ -80,16 +80,19 @@ export default class Human extends THREE.Group{
         // find closest node to agent, just in case agent is out of bounds
         const closest = this.pathfinding.getClosestNode(this.position, LEVEL_ID, groupID);
         this.nextexit=this.exit[Math.round(Math.random()*(this.exit.length-1))]
-        const target=this.nextexit.position
+        const target=this.pathfinding.getClosestNode(this.nextexit.position, LEVEL_ID, groupID);
        // target.y=0
 
-        this.navpath=this.pathfinding.findPath(closest.centroid,target,LEVEL_ID,groupID)
+        this.navpath=this.pathfinding.findPath(closest.centroid,target.centroid,LEVEL_ID,groupID)
         if(this.navpath && this.navpath.length>0){
             this.pathhelper.reset()
             this.pathhelper.setPlayerPosition(this.position);
             this.pathhelper.setTargetPosition(target);
             
             this.pathhelper.setPath(this.navpath);
+        }
+        else{
+            console.log("NO PATH!!")
         }
 
     }
@@ -156,41 +159,33 @@ export default class Human extends THREE.Group{
 
     update() {
 
-        // if(this.position.distanceToSquared(this.pod.position)<.5 && !this.isInPod && !this.navpath){
-        //     this.pod.isFull=true
-        //     this.isInPod=true
-        //     this.starttime=Date.now()
-        //     return;
-        // }
         this.updateAnimations()
 
-        if(this.isInPod){
-            this.isReturningToPod = false
-            this.visible=false
+        if(this.isInPod){            
             const currenttime=Date.now()
             if((currenttime-this.starttime)/1000>this.stayinpod){
                 this.findNewTarget();
                 this.pod.isFull=false
                 this.isInPod=false
+                this.visible=true
             }
             return
         }
 
-
-        if ( !this.navpath || this.navpath.length <= 0 ){
-            if(this.position.distanceToSquared(this.pod.position)<.5){
-                this.isInPod=true
-                this.pod.isFull=true
-
-                this.starttime=Date.now()
-
-            }
-            this.returntoPod();
-
+        if(this.position.distanceToSquared(this.pod.position)<.5 && this.isReturningToPod){
+            this.pod.isFull=true
+            this.isInPod=true
+            this.isReturningToPod = false
+            this.visible=false
+            this.navpath=[]
+            this.starttime=Date.now()
             return;
-        } 
+        }
 
-        this.visible=true
+
+        if(this.navpath==null || this.navpath.length==0)
+            this.findNewTarget();
+
 
         let targetPosition = this.navpath[ 0 ];
         const distance:THREE.Vector3 = targetPosition.clone().sub( this.position );
@@ -198,17 +193,13 @@ export default class Human extends THREE.Group{
         if (distance.lengthSq() > 0.5) {
             distance.normalize();
             this.lookAt(targetPosition)   
-
-            
             this.position.add( distance.multiplyScalar(this.speed ) );
-        
         } 
         else {
             this.navpath.shift();
-        }
-        //this.position.add(this.vel.clone().normalize().multiplyScalar(this.speed));
-      
+        }      
     }
+
     private updateAnimations(){
         if ( this.animationMixer )
             if(this.isInPod){
