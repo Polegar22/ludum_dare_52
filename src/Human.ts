@@ -53,7 +53,7 @@ export default class Human extends THREE.Group{
         this.pathfinding=pathfinding;
         this.pathhelper=new PathfindingHelper()
         scene?.add(this.pathhelper)
-        
+        this.pod.startTimer(this.stayinpod)
        // this.findNewTarget()
       //  this.vel=this.vel.randomDirection();
       //  this.vel.y=0;
@@ -164,10 +164,11 @@ export default class Human extends THREE.Group{
         if(this.isInPod){            
             const currenttime=Date.now()
             if((currenttime-this.starttime)/1000>this.stayinpod){
-                this.findNewTarget();
+                this.findNewTarget()
                 this.pod.isFull=false
                 this.isInPod=false
                 this.visible=true
+                this.pod.resetTimer()
             }
             return
         }
@@ -179,6 +180,7 @@ export default class Human extends THREE.Group{
             this.visible=false
             this.navpath=[]
             this.starttime=Date.now()
+            this.pod.startTimer(this.stayinpod)
             return;
         }
 

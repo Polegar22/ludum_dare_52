@@ -223,6 +223,11 @@ export default class HumanHarverstScene extends THREE.Scene
 			h.update()
 
 		});
+
+		this.pods.forEach(p =>{
+			p.update()
+		})
+
 		if(this.sentinel){
 			this.sentinel.updateInput()
 		}
