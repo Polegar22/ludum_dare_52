@@ -43,29 +43,33 @@ function startGame(){
 	renderer.setSize(width, height)
 
 	
-	const composer = new EffectComposer( renderer );
+	//const composer = new EffectComposer( renderer );
 
 	
 	
 	const mainCamera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100)
+	const orthoCamera = new THREE.OrthographicCamera(-30,30, -30 , 30, 1, 600)
+	orthoCamera.rotateOnAxis(new THREE.Vector3(1,0,0),3.14/2.)
+	orthoCamera.translateZ(.8)
+	//orthoCamera.lookAt(new THREE.Vector3(0,.5,0))
 	
 	const scene = new HumanHarverstScene(mainCamera)
 	scene.initialize()
 
-	const renderPass = new RenderPass( scene, mainCamera );
-	composer.addPass( renderPass );
+	//const renderPass = new RenderPass( scene, mainCamera );
+	//composer.addPass( renderPass );
 
-	 const glitchPass = new GlitchPass();
+	// const glitchPass = new GlitchPass();
 	// composer.addPass( glitchPass );
 
-	const bloomPass = new UnrealBloomPass(new Vector2(width,height),0.1,.1,.8)
+	// const bloomPass = new UnrealBloomPass(new Vector2(width,height),0.1,.1,.8)
 
 	// 	1,    // strength
 	// 	25,   // kernel size
 	// 	4,    // sigma ?
 	// 	256,  // blur render target resolution
 	// );	
-	composer.addPass(bloomPass)
+	//composer.addPass(bloomPass)
 	const urlParams = new URLSearchParams(window.location.search);
 	if(urlParams.get("orbit")){
 		const orbitControls = new OrbitControls(mainCamera, renderer.domElement);
@@ -88,7 +92,20 @@ function startGame(){
 	{
 		if(!scene.isGameOver()){
 			scene.update()
-			composer.render()
+			renderer.setViewport(0,0,width,height)
+
+			renderer.setScissor(0,0,width,height)
+
+			
+			renderer.setScissorTest(true)
+			renderer.render(scene,mainCamera)
+			renderer.setViewport(0,0,250,250)
+			renderer.setScissor(0,0,250,250)
+			
+			renderer.setScissorTest(true)
+			orthoCamera.updateProjectionMatrix()
+			renderer.render(scene,orthoCamera)
+			
 			requestAnimationFrame(tick)
 		}
 		else{
