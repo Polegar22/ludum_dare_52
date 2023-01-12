@@ -180,13 +180,8 @@ export default class Sentinel extends THREE.Group
 	}
 
 	private manageWeaponBonus(){
-
-		if(this.currentWeapon =="facebook"){
-			this.speed = DEFAULT_SPEED
-			this.bulletType = BulletType.Normal
-			this.fireRate = DEFAULT_FIRE_RATE
-		}
-		else if(this.currentWeapon === "snapchat"){
+		this.resetBonus()
+		if(this.currentWeapon === "snapchat"){
 			this.speed = DEFAULT_SPEED * 2
 		}
 		else if(this.currentWeapon === 'tiktok'){
@@ -202,6 +197,12 @@ export default class Sentinel extends THREE.Group
 			this.fireBullet()
 			this.bulletType = BulletType.Speed
 		}
+	}
+
+	private resetBonus(){
+		this.speed = DEFAULT_SPEED
+		this.bulletType = BulletType.Normal
+		this.fireRate = DEFAULT_FIRE_RATE
 	}
 
 }
